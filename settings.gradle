@@ -1,0 +1,6 @@
+rootProject.name = 'CrossSupported'
+
+include ":api"
+include ":common"
+include ":java8"
+include ":java9+"

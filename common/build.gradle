@@ -1,0 +1,5 @@
+sourceCompatibility = targetCompatibility = 1.8
+
+dependencies {
+    compile project(":api")
+}

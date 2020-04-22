@@ -1,0 +1,73 @@
+plugins {
+    id "nl.elec332.gradle.ossrhplugin" version "1.0.2-Beta"
+}
+
+group 'nl.elec332.lib'
+archivesBaseName = "CrossSupported"
+version '0.1-Alpha-TEST'
+
+sourceCompatibility = targetCompatibility = 1.8
+
+File javaRoot =  new File(System.getenv("JAVA_HOME")).parentFile
+File maybe = null
+for (File f : javaRoot.listFiles()) {
+    if (f.name.contains("1.8")) {
+        String[] namS = f.name.split("1.8")
+        if (namS[0].equals("jre") && (maybe == null || maybe.name.startsWith("jre1"))) {
+            maybe = f
+        } else if (namS[0].equals("jdk")) {
+            maybe = new File(f, "jre")
+        }
+    }
+}
+
+if (!project.hasProperty("java8loc")) {
+    if (maybe == null) {
+        throw new RuntimeException()
+    } else {
+        ext.java8loc = maybe.absolutePath
+    }
+}
+
+subprojects {
+
+    apply plugin: 'java'
+
+}
+
+dependencies {
+    for (Project p : getSubprojects()) {
+        compileOnly(p)
+    }
+}
+
+jar {
+    manifest {
+        attributes "Multi-Release": "true"
+    }
+}
+
+processResources {
+    for (Project p : getSubprojects()) {
+        if (!p.name.contains("java9")) {
+            from(p.compileJava.destinationDir)
+        }
+    }
+    from(project("java9+").compileJava.destinationDir) {
+        exclude("**/api")
+        into "/META-INF/versions/9/"
+    }
+}
+
+ossrh {
+    description = 'Library for using unsupported Java classes, like Cleaner and Unsafe, in all Java versions'
+    githubUrl = 'https://github.com/JavaSDR/JavaSDRLib'
+
+    license {
+        name 'GNU Lesser General Public License, version 2.1'
+        url 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt'
+    }
+    developer {
+        name 'Elec332'
+    }
+}
